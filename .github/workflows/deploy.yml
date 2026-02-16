@@ -1,4 +1,4 @@
-name: Deploy to VPS
+name: Deploy to Production VPS
 
 on:
   push:
@@ -7,28 +7,72 @@ on:
 
 jobs:
   deploy:
+    name: Deploy and Restart Application
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code (for local access to scripts)
+        uses: actions/checkout@v3
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      # --- SSH CONNECTION STEPS ---
+      # Cada passo SSH agora executa um script específico no servidor remoto
 
-      - name: Install and Build
-        run: |
-          bun install
-          bun --bun run build
-
-      - name: Deploy to VPS
+      - name: 1/6 - Pull latest code & prepare scripts
         uses: appleboy/ssh-action@master
         with:
-          host: 154.29.76.170
-          username: cauldrun
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
+            set -e
             cd /opt/cauldrun
             git pull origin main
-            bun install
-            bun --bun run build
-            pm2 restart sveltekit-app
-            pm2 save
+            # Make sure the scripts are executable on the remote
+            chmod +x scripts/*.sh
+
+      - name: 2/6 - Install dependencies
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            set -e
+            cd /opt/cauldrun
+            ./scripts/2_install.sh
+
+      - name: 3/6 - Run database migrations
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            set -e
+            # Pass DATABASE_URL to the script's environment
+            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
+            cd /opt/cauldrun
+            ./scripts/3_migrate.sh
+
+      - name: 4/6 - Build application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            set -e
+            # Pass DATABASE_URL to the script's environment
+            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
+            cd /opt/cauldrun
+            ./scripts/4_build.sh
+
+      - name: 5/6 - Restart application server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            set -e
+            cd /opt/cauldrun
+            ./scripts/5_restart.sh

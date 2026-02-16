@@ -1,21 +1,17 @@
 name: Deploy to Production VPS
-
 on:
   push:
     branches:
-      - master # Corrigindo para master
-
+      - master
 jobs:
   deploy:
     name: Deploy and Restart Application
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code (for local access to scripts)
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       # --- SSH CONNECTION STEPS ---
-      # Cada passo SSH agora executa um script específico no servidor remoto
-
       - name: 1/5 - Pull latest code & execute permissions
         uses: appleboy/ssh-action@master
         with:
@@ -25,8 +21,7 @@ jobs:
           script: |
             set -e
             cd /opt/cauldrun
-            git pull origin master # Corrigindo o pull inicial para master
-            # Make sure the scripts are executable on the remote
+            git pull origin master
             chmod +x scripts/*.sh
 
       - name: 2/5 - Install dependencies
@@ -39,7 +34,7 @@ jobs:
             set -e
             export PATH="/home/cauldrun/.bun/bin:$PATH"
             cd /opt/cauldrun
-            ./scripts/2_install.sh
+            bash scripts/2_install.sh
 
       - name: 3/5 - Run database migrations
         uses: appleboy/ssh-action@master
@@ -49,10 +44,10 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             set -e
-            # Pass DATABASE_URL to the script's environment
-            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             cd /opt/cauldrun
-            ./scripts/3_migrate.sh
+            bash scripts/3_migrate.sh
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
 
       - name: 4/5 - Build application
         uses: appleboy/ssh-action@master
@@ -62,11 +57,12 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             set -e
-            # Pass DATABASE_URL to the script's environment
-            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             export PATH="/home/cauldrun/.bun/bin:$PATH"
             cd /opt/cauldrun
-            ./scripts/4_build.sh
+            bash scripts/4_build.sh
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          NODE_ENV: production
 
       - name: 5/5 - Restart application server
         uses: appleboy/ssh-action@master
@@ -77,4 +73,4 @@ jobs:
           script: |
             set -e
             cd /opt/cauldrun
-            ./scripts/5_restart.sh
+            bash scripts/5_restart.sh

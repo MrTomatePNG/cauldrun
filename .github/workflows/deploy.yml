@@ -13,7 +13,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # --- SSH CONNECTION STEPS ---
       - name: 1/5 - Pull latest code & execute permissions
         uses: appleboy/ssh-action@master
         with:
@@ -23,7 +22,8 @@ jobs:
           script: |
             set -e
             cd /opt/cauldrun
-            git pull origin master
+            git fetch origin master
+            git reset --hard origin/master
             chmod +x scripts/*.sh
 
       - name: 2/5 - Install dependencies
@@ -46,10 +46,10 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             set -e
+            export PATH="/home/cauldrun/.bun/bin:$PATH"
+            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             cd /opt/cauldrun
             bash scripts/3_migrate.sh
-        env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
 
       - name: 4/5 - Build application
         uses: appleboy/ssh-action@master
@@ -60,11 +60,9 @@ jobs:
           script: |
             set -e
             export PATH="/home/cauldrun/.bun/bin:$PATH"
+            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             cd /opt/cauldrun
             bash scripts/4_build.sh
-        env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
-          NODE_ENV: production
 
       - name: 5/5 - Restart application server
         uses: appleboy/ssh-action@master

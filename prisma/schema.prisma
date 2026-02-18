@@ -39,6 +39,8 @@ model User {
   image         String?
   accounts      Account[]
 
+  role String? @default("user")
+
   @@index([username])
   @@map("user")
 }

@@ -14,7 +14,10 @@ const config = {
       $generated: path.resolve("genereted/prisma/*"),
     },
   },
-  preprocess: sveltePreprocess({ scss: true }),
+
+  preprocess: sveltePreprocess({
+    scss: {},
+  }),
 };
 
 export default config;

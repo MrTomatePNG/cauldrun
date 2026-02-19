@@ -30,3 +30,5 @@ export const auth = betterAuth({
   },
   plugins: [sveltekitCookies(getRequestEvent), username()],
 });
+
+export type Auth = typeof auth;

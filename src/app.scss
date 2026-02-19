@@ -1,26 +1,29 @@
 @use "sass:color";
 
-$color1: #001449; // Very dark blue
-$color2: #012677; // Dark blue
-$color3: #005bc5; // Medium vibrant blue
-$color4: #00b4fc; // Bright blue
-$color5: #17f9ff; // Very light, almost cyan blue
+// --- Base Colors (Preto e Laranja Suaves) ---
+$charcoal-black: #121212;   // Um "preto" suave (material design style)
+$deep-grey: #1e1e1e;        // Cinza muito escuro para superfícies
+$orange-muted: #e67e22;     // Laranja clássico, mas menos "neon"
+$orange-warm: #d35400;      // Laranja queimado para profundidade
+$peach-soft: #ffccbc;       // Um tom de pêssego muito claro para textos claros
+$off-white: #fafafa;        // Branco suave para o modo light
+$slate-grey: #555555;       // Cinza médio para textos mutados
 
-// --- Light Theme Palette ---
-// Background: A very light, almost white blue, derived from the brighter blues for a subtle tint.
-$light-background: color.mix(white, $color4, 15%); // Creates a very pale blue (e.g., #e0f6ff)
-// Text: A dark blue that provides excellent contrast.
-$light-text-color: $color1;
-// Accent: A vibrant medium blue.
-$light-accent-color: $color3;
+// --- Light Theme ---
+$light-background: $off-white;
+$light-surface: color.mix(white, $orange-muted, 92%); // Um off-white levemente quente
+$light-text-color: $charcoal-black;
+$light-text-muted: $slate-grey;
+$light-accent: $orange-muted;
+$light-accent-soft: color.mix(white, $orange-muted, 75%);
 
-// --- Dark Theme Palette ---
-// Background: A deep, dark blue, almost black.
-$dark-background: $color1;
-// Text: A bright blue for good readability on a dark background.
-$dark-text-color: $color4;
-// Accent: A vibrant bright blue for more pop against the dark background.
-$dark-accent-color: $color4;
+// --- Dark Theme ---
+$dark-background: $charcoal-black;
+$dark-surface: $deep-grey;
+$dark-text-color: $peach-soft;   // Texto pêssego suave fica lindo no fundo preto
+$dark-text-muted: color.mix($peach-soft, $charcoal-black, 60%);
+$dark-accent: $orange-muted;
+$dark-accent-soft: color.mix(black, $orange-muted, 40%);
 
 html,
 body {
@@ -28,32 +31,36 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
 
-    // Define CSS Custom Properties (variables) for the default (light) theme
-    --bg-color: #{$light-background};
-    --text-color: #{$light-text-color};
-    --accent-color: #{$light-accent-color};
+    // Default: Light Mode
+    --bg: #{$light-background};
+    --surface: #{$light-surface};
+    --text: #{$light-text-color};
+    --text-muted: #{$light-text-muted};
+    --accent: #{$light-accent};
+    --accent-soft: #{$light-accent-soft};
 
-    // Apply the default theme colors
-    background-color: var(--bg-color);
-    color: var(--text-color); // Also define a default text color for the palette
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.3s ease, color 0.3s ease; // Suaviza a troca de tema
 
-    // Define the dark theme colors within a specific class (e.g., .dark-mode)
-    // This allows for explicit theme switching via JavaScript by adding/removing this class.
     &.dark-mode {
-        --bg-color: #{$dark-background};
-        --text-color: #{$dark-text-color};
-        --accent-color: #{$dark-accent-color};
+        --bg: #{$dark-background};
+        --surface: #{$dark-surface};
+        --text: #{$dark-text-color};
+        --text-muted: #{$dark-text-muted};
+        --accent: #{$dark-accent};
+        --accent-soft: #{$dark-accent-soft};
     }
 
-    // Optionally, apply the dark theme automatically based on user's system preference
-    // if a light mode isn't explicitly set.
     @media (prefers-color-scheme: dark) {
-        &:not(.light-mode) { // Apply dark theme if not explicitly in light mode
-            --bg-color: #{$dark-background};
-            --text-color: #{$dark-text-color};
-            --accent-color: #{$dark-accent-color};
+        &:not(.light-mode) {
+            --bg: #{$dark-background};
+            --surface: #{$dark-surface};
+            --text: #{$dark-text-color};
+            --text-muted: #{$dark-text-muted};
+            --accent: #{$dark-accent};
+            --accent-soft: #{$dark-accent-soft};
         }
     }
 }

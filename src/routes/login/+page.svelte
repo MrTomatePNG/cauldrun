@@ -13,9 +13,9 @@
 
     // --- VALIDAÇÃO ---
     const isValid = $derived(
-        isLogin 
-            ? (email.includes("@") && password.length > 0)
-            : (email.includes("@") && password.length >= 8 && name.length > 1)
+        isLogin
+            ? email.includes("@") && password.length > 0
+            : email.includes("@") && password.length >= 8 && name.length > 1,
     );
 
     // --- AÇÃO ---
@@ -26,9 +26,18 @@
         isLoading = true;
         serverError = "";
 
-        const { error } = isLogin 
-            ? await authClient.signIn.email({ email, password, callbackURL: "/" })
-            : await authClient.signUp.email({ email, password, name, callbackURL: "/" });
+        const { error } = isLogin
+            ? await authClient.signIn.email({
+                  email,
+                  password,
+                  callbackURL: "/",
+              })
+            : await authClient.signUp.email({
+                  email,
+                  password,
+                  name,
+                  callbackURL: "/",
+              });
 
         if (error) {
             serverError = error.message || "Erro de autenticação";
@@ -42,44 +51,52 @@
 <div class="container">
     <form onsubmit={handleSubmit} class="auth-form">
         <h1 class="title">{isLogin ? "Login" : "Cadastro"}</h1>
-        
+
         {#if serverError}
             <p class="error-text">{serverError}</p>
         {/if}
 
         <div class="fields">
             {#if !isLogin}
-                <input 
-                    type="text" 
-                    placeholder="Username" 
-                    bind:value={name} 
+                <input
+                    type="text"
+                    placeholder="Username"
+                    bind:value={name}
                     class="minimal-input"
                     autocomplete="name"
                 />
             {/if}
 
-            <input 
-                type="email" 
-                placeholder="E-mail" 
-                bind:value={email} 
+            <input
+                type="email"
+                placeholder="E-mail"
+                bind:value={email}
                 class="minimal-input"
                 autocomplete="email"
             />
 
-            <input 
-                type="password" 
-                placeholder="Senha" 
-                bind:value={password} 
+            <input
+                type="password"
+                placeholder="Senha"
+                bind:value={password}
                 class="minimal-input"
                 autocomplete={isLogin ? "current-password" : "new-password"}
             />
         </div>
 
-        <button type="submit" class="submit-btn" disabled={!isValid || isLoading}>
+        <button
+            type="submit"
+            class="submit-btn"
+            disabled={!isValid || isLoading}
+        >
             {isLoading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
         </button>
 
-        <button type="button" onclick={() => (isLogin = !isLogin)} class="toggle-btn">
+        <button
+            type="button"
+            onclick={() => (isLogin = !isLogin)}
+            class="toggle-btn"
+        >
             {isLogin ? "Não tenho conta" : "Já sou cadastrado"}
         </button>
     </form>

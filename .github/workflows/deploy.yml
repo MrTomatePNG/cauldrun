@@ -49,13 +49,17 @@ jobs:
           script: |
             cd /opt/cauldrun
             export PATH="/home/cauldrun/.bun/bin:$PATH"
+            export NVM_DIR="/home/cauldrun/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 22
 
-            # Instala apenas o necessário para rodar
+            # Instala apenas dependências necessárias para rodar
             bun install --production
 
-            # Migrations (Rápido, sem build pesado)
+            # Migrations
             export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             bun prisma migrate deploy
 
-            # Reinicia o servidor
-            pm2 restart sveltekit-app || pm2 start build/index.js --name sveltekit-app
+            # Tenta reiniciar. Se falhar (erro 16), inicia do zero.
+            PORT=3000 pm2 restart sveltekit-app --update-env || PORT=3000 pm2 start build/index.js --name sveltekit-app
+            pm2 save

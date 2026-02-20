@@ -59,18 +59,18 @@ enum MediaType {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  username      String       @unique @db.VarChar(30)
-  email         String       @unique @db.VarChar(255)
-  createdAt     DateTime     @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime     @updatedAt @db.Timestamptz(6)
-  emailVerified Boolean      @default(false)
+  id            String    @id @default(cuid())
+  username      String    @unique @db.VarChar(30)
+  email         String    @unique @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  emailVerified Boolean   @default(false)
   image         String?
-  role          Role         @default(user)
+  role          Role      @default(user)
+  bio           String?   @db.VarChar(160)
   accounts      Account[]
   posts         Post[]
   sessions      Session[]
-  profile       UserProfile?
 
   displayUsername String?
 
@@ -81,16 +81,6 @@ model User {
 enum Role {
   user
   admin
-}
-
-model UserProfile {
-  id        String  @id @default(cuid())
-  avatarUrl String?
-  bio       String? @db.VarChar(160)
-  userId    String  @unique
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_profile")
 }
 
 model Session {

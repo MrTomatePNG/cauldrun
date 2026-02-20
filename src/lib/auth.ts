@@ -17,15 +17,23 @@ export const auth = betterAuth({
   },
   user: {
     fields: {
-      name: "username",
+      name: "username", // Mapeia o campo 'name' do Better Auth para 'username' no banco
     },
     additionalFields: {
       role: {
-        type: ["user", "admin"],
+        type: "string",
         required: false,
         defaultValue: "user",
         input: false,
       },
+      displayUsername: {
+        type: "string",
+        required: false,
+      },
+      bio: {
+        type: "string",
+        required: false,
+      }
     },
   },
   plugins: [sveltekitCookies(getRequestEvent), username()],

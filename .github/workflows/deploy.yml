@@ -1,77 +1,61 @@
-name: Deploy to Production VPS
+name: Deploy to Production
+
 on:
   push:
-    branches:
-      - master
-  workflow_dispatch:
+    branches: [master]
 
 jobs:
-  deploy:
-    name: Deploy and Restart Application
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: 1/5 - Pull latest code & execute permissions
-        uses: appleboy/ssh-action@master
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USERNAME }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            set -e
-            cd /opt/cauldrun
-            git fetch origin master
-            git reset --hard origin/master
-            chmod +x scripts/*.sh
+          bun-version: latest
 
-      - name: 2/5 - Install dependencies
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USERNAME }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            set -e
-            export PATH="/home/cauldrun/.bun/bin:$PATH"
-            cd /opt/cauldrun
-            bash scripts/2_install.sh
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
 
-      - name: 3/5 - Run database migrations
+      - name: Generate Prisma Client
+        run: bun prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+
+      - name: Build Application
+        run: bun run build # Build feito com 7GB de RAM do GitHub!
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          BETTER_AUTH_BASE_URL: ${{ secrets.PROD_BETTER_AUTH_BASE_URL }}
+
+      - name: Transfer Files to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          # Enviamos a pasta build, prisma e arquivos de dependência
+          source: "build,package.json,bun.lockb,prisma"
+          target: "/opt/cauldrun"
+
+      - name: Finalize Deploy on VPS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            set -e
+            cd /opt/cauldrun
             export PATH="/home/cauldrun/.bun/bin:$PATH"
+
+            # Instala apenas o necessário para rodar
+            bun install --production
+
+            # Migrations (Rápido, sem build pesado)
             export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
-            cd /opt/cauldrun
-            bash scripts/3_migrate.sh
+            bun prisma migrate deploy
 
-      - name: 4/5 - Build application
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USERNAME }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            set -e
-            export PATH="/home/cauldrun/.bun/bin:$PATH"
-            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
-            export BETTER_AUTH_BASE_URL="${{ secrets.PROD_BETTER_AUTH_BASE_URL }}"
-            cd /opt/cauldrun
-            bash scripts/4_build.sh
-
-      - name: 5/5 - Restart application server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USERNAME }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            set -e
-            cd /opt/cauldrun
-            bash scripts/5_restart.sh
+            # Reinicia o servidor
+            pm2 restart sveltekit-app || pm2 start build/index.js --name sveltekit-app

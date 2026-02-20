@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-O objetivo desta tarefa é analisar e definir as especificações técnicas para o próximo conjunto de funcionalidades a serem implementadas no Cauldron. Esta é uma tarefa de planejamento estratégico, não de codificação.
+O objetivo desta tarefa é analisar e definir as especificações técnicas para o próximo conjunto de funcionalidades a serem implementadas no Sewer Comedy. Esta é uma tarefa de planejamento estratégico, não de codificação.
 
 ## 2. Processo de Análise e Especificação
 

@@ -2,7 +2,7 @@
     import Feed from "@/lib/components/Feed.svelte";
     import { ThumbsUp } from "lucide-svelte";
     import { enhance } from "$app/forms";
-    
+
     let { data } = $props();
 </script>
 
@@ -18,15 +18,28 @@
                             <div class="placeholder">Mídia corrompida</div>
                         {/if}
                     </div>
-                    
+
                     <div class="post-info">
                         <div class="meta">
                             <span class="author">@{post.user.username}</span>
-                            
+
                             <form method="POST" action="?/like" use:enhance>
-                                <input type="hidden" name="postId" value={post.id} />
-                                <button type="submit" class="like-btn" class:liked={post.isLiked}>
-                                    <ThumbsUp size={24} fill={post.isLiked ? "var(--accent)" : "none"} />
+                                <input
+                                    type="hidden"
+                                    name="postId"
+                                    value={post.id}
+                                />
+                                <button
+                                    type="submit"
+                                    class="like-btn"
+                                    class:liked={post.isLiked}
+                                >
+                                    <ThumbsUp
+                                        size={24}
+                                        fill={post.isLiked
+                                            ? "var(--accent)"
+                                            : "none"}
+                                    />
                                     <span>{post.likesCount}</span>
                                 </button>
                             </form>
@@ -38,8 +51,8 @@
         </Feed>
     {:else}
         <div class="empty-feed">
-            <p>O esgoto está vazio... por enquanto.</p>
-            <a href="/studio" class="btn">Postar algo ácido</a>
+            <p>O esgoto está limpo... por enquanto.</p>
+            <a href="/studio" class="btn">Postar algo</a>
         </div>
     {/if}
 </div>
@@ -75,7 +88,7 @@
 
     .post-info {
         padding: 20px;
-        background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
         position: absolute;
         bottom: 0;
         left: 0;
@@ -103,11 +116,18 @@
             gap: 6px;
             cursor: pointer;
             transition: transform 0.1s ease;
-            
-            span { font-size: 0.9rem; font-weight: bold; }
-            
-            &:active { transform: scale(1.2); }
-            &.liked { color: var(--accent); }
+
+            span {
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+
+            &:active {
+                transform: scale(1.2);
+            }
+            &.liked {
+                color: var(--accent);
+            }
         }
 
         .comment {
@@ -124,7 +144,7 @@
         justify-content: center;
         height: 100%;
         color: var(--text-muted);
-        
+
         .btn {
             margin-top: 20px;
             padding: 10px 20px;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    // Página de Notificações
+// Página de Notificações
 </script>
 
 <div class="coming-soon-container">

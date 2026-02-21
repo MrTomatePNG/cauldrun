@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { User, DoorOpenIcon } from "lucide-svelte";
-    import { authClient } from "@/lib/auth-client";
-    import { goto } from "$app/navigation";
+import { DoorOpenIcon, User, ShieldAlert } from "lucide-svelte";
+import { authClient } from "@/lib/auth-client";
+import { goto } from "$app/navigation";
 
-    let { data } = $props();
-    const { user } = data;
+let { data } = $props();
+const { user } = data;
 </script>
 
 <div class="profile-page">
@@ -27,6 +27,16 @@
                 <span class="email-verified">E-mail verificado</span>
             {:else}
                 <span class="email-not-verified">E-mail não verificado</span>
+            {/if}
+
+            {#if user.role === "admin"}
+                <div class="admin-section">
+                    <h3>Administração</h3>
+                    <a href="/audit" class="audit-link">
+                        <ShieldAlert size={18} />
+                        <span>Fila de Auditoria</span>
+                    </a>
+                </div>
             {/if}
 
             <div class="actions">
@@ -138,6 +148,37 @@
                 background-color: rgba($warning-color, 0.1);
                 color: $warning-color;
                 border: 1px solid $warning-color;
+            }
+
+            .admin-section {
+                margin-top: 24px;
+                text-align: left;
+                background: rgba(var(--accent), 0.05);
+                padding: 16px;
+                border-radius: 10px;
+                border: 1px dashed var(--accent);
+
+                h3 {
+                    font-size: 0.8rem;
+                    text-transform: uppercase;
+                    color: var(--accent);
+                    margin-bottom: 12px;
+                    letter-spacing: 0.05em;
+                }
+
+                .audit-link {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    color: var(--text);
+                    text-decoration: none;
+                    font-weight: 600;
+                    font-size: 0.95rem;
+                    
+                    &:hover {
+                        color: var(--accent);
+                    }
+                }
             }
 
             .actions {

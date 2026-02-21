@@ -1,36 +1,36 @@
 {
-  "name": "cauldrun",
-  "private": true,
-  "version": "0.0.1",
-  "type": "module",
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "prepare": "svelte-kit sync || echo ''",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.4.0",
-    "@prisma/adapter-pg": "^7.4.0",
-    "@sveltejs/adapter-auto": "^7.0.0",
-    "@sveltejs/adapter-node": "^5.5.3",
-    "@sveltejs/kit": "^2.50.2",
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
-    "path": "^0.12.7",
-    "prisma": "^7.4.0",
-    "sass": "^1.97.3",
-    "svelte": "^5.49.2",
-    "svelte-check": "^4.3.6",
-    "svelte-preprocess": "^6.0.3",
-    "tippy.js": "^6.3.7",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.1"
-  },
-  "dependencies": {
-    "@lucia-auth/adapter-prisma": "^4.0.1",
-    "@prisma/client": "^7.4.0",
-    "better-auth": "^1.4.18",
-    "lucide-svelte": "^0.564.0"
-  }
+	"name": "cauldrun",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+	},
+	"devDependencies": {
+		"@aws-sdk/client-s3": "^3.995.0",
+		"@biomejs/biome": "2.4.0",
+		"@prisma/adapter-pg": "^7.4.0",
+		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-node": "^5.5.3",
+		"@sveltejs/kit": "^2.50.2",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"path": "^0.12.7",
+		"prisma": "^7.4.0",
+		"sass": "^1.97.3",
+		"svelte": "^5.49.2",
+		"svelte-check": "^4.3.6",
+		"svelte-preprocess": "^6.0.3",
+		"tippy.js": "^6.3.7",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
+	},
+	"dependencies": {
+		"@prisma/client": "^7.4.0",
+		"better-auth": "^1.4.18",
+		"lucide-svelte": "^0.564.0"
+	}
 }

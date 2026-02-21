@@ -1,51 +1,51 @@
 <script lang="ts">
-    import { authClient } from "@/lib/auth-client";
-    import { goto } from "$app/navigation";
+import { authClient } from "@/lib/auth-client";
+import { goto } from "$app/navigation";
 
-    // --- ESTADO ---
-    let isLogin = $state(true);
-    let isLoading = $state(false);
-    let serverError = $state("");
+// --- ESTADO ---
+let isLogin = $state(true);
+let isLoading = $state(false);
+let serverError = $state("");
 
-    let email = $state("");
-    let password = $state("");
-    let name = $state("");
+let email = $state("");
+let password = $state("");
+let name = $state("");
 
-    // --- VALIDAÇÃO ---
-    const isValid = $derived(
-        isLogin
-            ? email.includes("@") && password.length > 0
-            : email.includes("@") && password.length >= 8 && name.length > 1,
-    );
+// --- VALIDAÇÃO ---
+const isValid = $derived(
+	isLogin
+		? email.includes("@") && password.length > 0
+		: email.includes("@") && password.length >= 8 && name.length > 1,
+);
 
-    // --- AÇÃO ---
-    async function handleSubmit(e: Event) {
-        e.preventDefault();
-        if (!isValid || isLoading) return;
+// --- AÇÃO ---
+async function handleSubmit(e: Event) {
+	e.preventDefault();
+	if (!isValid || isLoading) return;
 
-        isLoading = true;
-        serverError = "";
+	isLoading = true;
+	serverError = "";
 
-        const { error } = isLogin
-            ? await authClient.signIn.email({
-                  email,
-                  password,
-                  callbackURL: "/",
-              })
-            : await authClient.signUp.email({
-                  email,
-                  password,
-                  name,
-                  callbackURL: "/",
-              });
+	const { error } = isLogin
+		? await authClient.signIn.email({
+				email,
+				password,
+				callbackURL: "/",
+			})
+		: await authClient.signUp.email({
+				email,
+				password,
+				name,
+				callbackURL: "/",
+			});
 
-        if (error) {
-            serverError = error.message || "Erro de autenticação";
-            isLoading = false;
-        } else {
-            goto("/");
-        }
-    }
+	if (error) {
+		serverError = error.message || "Erro de autenticação";
+		isLoading = false;
+	} else {
+		goto("/");
+	}
+}
 </script>
 
 <div class="container">

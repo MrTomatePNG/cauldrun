@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [master]
+    branches: [master, main]
 
 jobs:
   build_and_deploy:
@@ -25,10 +25,16 @@ jobs:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
 
       - name: Build Application
-        run: bun run build # Build feito com 7GB de RAM do GitHub!
+        run: bun run build
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.PROD_BETTER_AUTH_SECRET }}
           BETTER_AUTH_BASE_URL: ${{ secrets.PROD_BETTER_AUTH_BASE_URL }}
+          S3_ENDPOINT: ${{ secrets.PROD_S3_ENDPOINT }}
+          S3_REGION: ${{ secrets.PROD_S3_REGION }}
+          S3_ACCESS_KEY: ${{ secrets.PROD_S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.PROD_S3_SECRET_KEY }}
+          S3_BUCKET_NAME: ${{ secrets.PROD_S3_BUCKET_NAME }}
 
       - name: Transfer Files to VPS
         uses: appleboy/scp-action@master
@@ -36,9 +42,8 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.DEPLOY_KEY }}
-          # Enviamos a pasta build, prisma e arquivos de dependência
-          source: "build,package.json,bun.lockb,prisma"
-          target: "/opt/cauldrun"
+          source: "build,package.json,bun.lock,prisma"
+          target: "/opt/sewer-comedy"
 
       - name: Finalize Deploy on VPS
         uses: appleboy/ssh-action@master
@@ -47,19 +52,28 @@ jobs:
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            cd /opt/cauldrun
-            export PATH="/home/cauldrun/.bun/bin:$PATH"
-            export NVM_DIR="/home/cauldrun/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 22
-
+            cd /opt/sewer-comedy
+            # Ajuste os caminhos de acordo com seu usuário na VPS
+            export PATH="$HOME/.bun/bin:$PATH"
+            
             # Instala apenas dependências necessárias para rodar
             bun install --production
 
-            # Migrations
+            # Executa Migrations
             export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             bun prisma migrate deploy
 
-            # Tenta reiniciar. Se falhar (erro 16), inicia do zero.
-            PORT=3000 pm2 restart sveltekit-app --update-env || PORT=3000 pm2 start build/index.js --name sveltekit-app
+            # Reinicia o App com PM2 enviando todas as ENV de produção
+            PORT=3000 pm2 restart sewer-app --update-env || \
+            PORT=3000 \
+            BETTER_AUTH_SECRET="${{ secrets.PROD_BETTER_AUTH_SECRET }}" \
+            BETTER_AUTH_BASE_URL="${{ secrets.PROD_BETTER_AUTH_BASE_URL }}" \
+            DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}" \
+            S3_ENDPOINT="${{ secrets.PROD_S3_ENDPOINT }}" \
+            S3_REGION="${{ secrets.PROD_S3_REGION }}" \
+            S3_ACCESS_KEY="${{ secrets.PROD_S3_ACCESS_KEY }}" \
+            S3_SECRET_KEY="${{ secrets.PROD_S3_SECRET_KEY }}" \
+            S3_BUCKET_NAME="${{ secrets.PROD_S3_BUCKET_NAME }}" \
+            pm2 start build/index.js --name sewer-app
+            
             pm2 save

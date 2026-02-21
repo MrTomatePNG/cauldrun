@@ -1,8 +1,9 @@
 <script>
-    import "../app.scss";
-    import { page } from "$app/state";
-    import { MessageCircle, House, User, Bell } from "lucide-svelte";
-    let { children } = $props();
+import "../app.scss";
+import { Bell, CirclePlus, House, MessageCircle, User } from "lucide-svelte";
+import { page } from "$app/state";
+
+let { children } = $props();
 </script>
 
 <div class="app-shell">
@@ -11,6 +12,10 @@
     </main>
 
     <nav class="bottom-nav">
+        <a href="/" class="nav-link" class:active={page.url.pathname == "/"}>
+            <House size={24} />
+            <span>Home</span>
+        </a>
         <a
             href="/chats"
             class="nav-link"
@@ -19,9 +24,12 @@
             <MessageCircle size={24} />
             <span>Chats</span>
         </a>
-        <a href="/" class="nav-link" class:active={page.url.pathname == "/"}>
-            <House size={24} />
-            <span>Home</span>
+        <a
+            href="/studio"
+            class="nav-link"
+            class:active={page.url.pathname == "/studio"}
+        >
+            <CirclePlus size={40} accent-height={10} />
         </a>
         <a
             href="/notif"

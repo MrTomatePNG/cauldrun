@@ -1,6 +1,6 @@
 <script lang="ts">
-    // Não há script complexo necessário para esta página de "em breve".
-    // Se no futuro você precisar adicionar lógica aqui, pode fazê-lo.
+// Não há script complexo necessário para esta página de "em breve".
+// Se no futuro você precisar adicionar lógica aqui, pode fazê-lo.
 </script>
 
 <div class="coming-soon-container">

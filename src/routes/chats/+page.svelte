@@ -1,5 +1,5 @@
 <script lang="ts">
-    // Página de Chat
+// Página de Chat
 </script>
 
 <div class="coming-soon-container">

@@ -1,7 +1,6 @@
-// src/lib/prisma.ts
-import { PrismaClient } from "$lib/genereted/prisma/client";
-import { DATABASE_URL } from "$env/static/private";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { DATABASE_URL } from "$env/static/private";
+import { PrismaClient } from "$lib/genereted/prisma/client";
 
 const adapter = new PrismaPg({
   connectionString: DATABASE_URL,

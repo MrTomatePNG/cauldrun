@@ -1,53 +1,138 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    let visits = $state(0);
-
-    onMount(() => {
-        const stored = localStorage.getItem("visits") || "0";
-        visits = parseInt(stored) + 1;
-        localStorage.setItem("visits", visits.toString());
-    });
+    import Feed from "@/lib/components/Feed.svelte";
+    import { ThumbsUp } from "lucide-svelte";
+    import { enhance } from "$app/forms";
+    
+    let { data } = $props();
 </script>
 
 <div class="page-container">
-    <div class="card">
-        <h1>🚧 Sewer Comedy 🚧</h1>
-        <p>Desenvolvimento em progresso.</p>
-        <div class="stats">
-            Visitas: <span>{visits}</span>
+    {#if data.posts.length > 0}
+        <Feed items={data.posts}>
+            {#snippet children(post)}
+                <div class="post-card">
+                    <div class="media-container">
+                        {#if post.mediaUrl}
+                            <img src={post.mediaUrl} alt="Post do esgoto" />
+                        {:else}
+                            <div class="placeholder">Mídia corrompida</div>
+                        {/if}
+                    </div>
+                    
+                    <div class="post-info">
+                        <div class="meta">
+                            <span class="author">@{post.user.username}</span>
+                            
+                            <form method="POST" action="?/like" use:enhance>
+                                <input type="hidden" name="postId" value={post.id} />
+                                <button type="submit" class="like-btn" class:liked={post.isLiked}>
+                                    <ThumbsUp size={24} fill={post.isLiked ? "var(--accent)" : "none"} />
+                                    <span>{post.likesCount}</span>
+                                </button>
+                            </form>
+                        </div>
+                        <p class="comment">{post.comment || ""}</p>
+                    </div>
+                </div>
+            {/snippet}
+        </Feed>
+    {:else}
+        <div class="empty-feed">
+            <p>O esgoto está vazio... por enquanto.</p>
+            <a href="/studio" class="btn">Postar algo ácido</a>
         </div>
-    </div>
+    {/if}
 </div>
 
 <style lang="scss">
     .page-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
         width: 100%;
         height: 100%;
         background-color: var(--bg);
-        padding: 20px;
     }
 
-    .card {
-        background-color: var(--surface);
-        border-radius: 16px;
-        padding: 40px;
+    .post-card {
         width: 100%;
-        max-width: 400px;
-        text-align: center;
-        border: 2px solid var(--accent);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #000;
+    }
 
-        h1 { color: var(--accent); margin-bottom: 1rem; }
-        p { color: var(--text); font-size: 1.1rem; }
+    .media-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .post-info {
+        padding: 20px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .author {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .like-btn {
+            background: none;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            
+            span { font-size: 0.9rem; font-weight: bold; }
+            
+            &:active { transform: scale(1.2); }
+            &.liked { color: var(--accent); }
+        }
+
+        .comment {
+            color: #eee;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+    }
+
+    .empty-feed {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-muted);
         
-        .stats {
-            margin-top: 2rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            span { color: var(--accent); font-weight: bold; }
+        .btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
         }
     }
 </style>

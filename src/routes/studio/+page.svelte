@@ -29,6 +29,13 @@
                 <p>Aguardando aprovação dos auditores.</p>
                 <button onclick={() => { success = false; previewUrl = null; }} class="btn-minimal">Novo post</button>
             </div>
+        {:else if !data.user.emailVerified}
+            <div class="verify-email-state" in:fade>
+                <div class="icon">📧</div>
+                <h2>Verifique seu E-mail</h2>
+                <p>O esgoto exige autenticidade. Verifique seu e-mail para habilitar o upload de posts.</p>
+                <button class="btn-minimal" onclick={() => location.reload()}>Já verifiquei</button>
+            </div>
         {:else}
             <form
                 method="POST"
@@ -180,7 +187,7 @@
         &:active:not(:disabled) { transform: scale(0.98); }
     }
 
-    .success-state {
+    .success-state, .verify-email-state {
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -189,6 +196,7 @@
         padding: 20px 0;
         h2 { color: var(--text); margin: 0; }
         p { color: var(--text-muted); font-size: 0.9rem; }
+        .icon { font-size: 3rem; margin-bottom: 10px; }
     }
 
     .btn-minimal {

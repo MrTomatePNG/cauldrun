@@ -35,6 +35,7 @@ jobs:
           S3_ACCESS_KEY: ${{ secrets.PROD_S3_ACCESS_KEY }}
           S3_SECRET_KEY: ${{ secrets.PROD_S3_SECRET_KEY }}
           S3_BUCKET_NAME: ${{ secrets.PROD_S3_BUCKET_NAME }}
+          RESEND_API_KEY: ${{ secrets.PROD_RESEND_API_KEY }}
 
       - name: Transfer Files to VPS
         uses: appleboy/scp-action@master
@@ -53,17 +54,16 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd /opt/sewer-comedy
-            # Ajuste os caminhos de acordo com seu usuário na VPS
             export PATH="$HOME/.bun/bin:$PATH"
             
-            # Instala apenas dependências necessárias para rodar
+            # Instala apenas dependências de produção
             bun install --production
 
             # Executa Migrations
             export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             bun prisma migrate deploy
 
-            # Reinicia o App com PM2 enviando todas as ENV de produção
+            # Reinicia o App com PM2 injetando todas as variáveis de ambiente necessárias
             PORT=3000 pm2 restart sewer-app --update-env || \
             PORT=3000 \
             BETTER_AUTH_SECRET="${{ secrets.PROD_BETTER_AUTH_SECRET }}" \
@@ -74,6 +74,7 @@ jobs:
             S3_ACCESS_KEY="${{ secrets.PROD_S3_ACCESS_KEY }}" \
             S3_SECRET_KEY="${{ secrets.PROD_S3_SECRET_KEY }}" \
             S3_BUCKET_NAME="${{ secrets.PROD_S3_BUCKET_NAME }}" \
+            RESEND_API_KEY="${{ secrets.PROD_RESEND_API_KEY }}" \
             pm2 start build/index.js --name sewer-app
             
             pm2 save

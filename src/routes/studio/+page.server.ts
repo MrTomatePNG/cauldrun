@@ -12,6 +12,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		user: {
 			id: locals.user.id,
 			name: locals.user.name,
+			emailVerified: locals.user.emailVerified,
 		},
 	};
 };
@@ -19,6 +20,12 @@ export const load: PageServerLoad = ({ locals }) => {
 export const actions: Actions = {
 	upload: async ({ locals, request }) => {
 		if (!locals.user) redirect(302, "/login");
+
+		// Segurança: Bloquear se não estiver verificado
+		if (!locals.user.emailVerified) {
+			locals.logger.warn({ userId: locals.user.id }, "Tentativa de upload sem e-mail verificado.");
+			return fail(403, { message: "Verifique seu e-mail para poder postar no esgoto." });
+		}
 
 		const formData = await request.formData();
 		const comment = formData.get("comment")?.toString();
@@ -28,8 +35,7 @@ export const actions: Actions = {
 			return fail(400, { message: "Arquivo inválido." });
 		}
 
-		// 1. Validações de Tamanho e Tipo
-		const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+		const MAX_SIZE = 10 * 1024 * 1024;
 		if (media.size > MAX_SIZE) return fail(400, { message: "Arquivo excede o limite de 10MB." });
 
 		const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "video/mp4"];
@@ -38,42 +44,36 @@ export const actions: Actions = {
 		}
 
 		try {
-			// 2. Preparar Key Segura (ignora nome original para evitar injeção)
 			const buffer = Buffer.from(await media.arrayBuffer());
-			const extension = media.type.split("/")[1]; // Pega a extensão do MIME type real
+			const extension = media.type.split("/")[1];
 			const fileName = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
 			const fileKey = `uploads/${locals.user.id}/${fileName}`;
 
-			// 3. Upload para S3 com metadados de segurança
 			await s3Client.send(new PutObjectCommand({
 				Bucket: bucketName,
 				Key: fileKey,
 				Body: buffer,
 				ContentType: media.type,
-				Metadata: {
-					originalName: encodeURIComponent(media.name),
-					userId: locals.user.id
-				}
+				Metadata: { userId: locals.user.id }
 			}));
 
-			// 4. Construir URL
 			const mediaUrl = `${S3_ENDPOINT}/${bucketName}/${fileKey}`;
 
-			// 5. Persistir no Banco
 			await prisma.post.create({
 				data: {
 					userId: locals.user.id,
-					comment: comment?.slice(0, 500) || "", // Limita tamanho da legenda
+					comment: comment?.slice(0, 500) || "",
 					mediaUrl: mediaUrl,
 					mediaType: media.type.startsWith("video") ? "video" : "image",
 					status: "pending",
 				}
 			});
 
+			locals.logger.info({ userId: locals.user.id, fileKey }, "Upload realizado com sucesso.");
 			return { success: true };
 		} catch (err) {
-			console.error("Erro crítico no upload:", err);
-			return fail(500, { message: "Falha ao processar arquivo. Tente novamente." });
+			locals.logger.error({ err }, "Erro crítico no upload");
+			return fail(500, { message: "Falha ao processar arquivo." });
 		}
 	},
 };

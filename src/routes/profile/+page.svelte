@@ -57,6 +57,10 @@ const { user } = data;
                 </button>
             </div>
         </div>
+        
+        <footer class="profile-footer">
+            <span class="version-tag">Sewer Comedy v0.1.0-alpha</span>
+        </footer>
     {:else}
         <div class="login-prompt">
             <p>Por favor, faça login para ver seu perfil.</p>
@@ -207,6 +211,22 @@ const { user } = data;
                     }
                 }
             }
+        }
+    }
+
+    .profile-footer {
+        margin-top: 40px;
+        padding-bottom: 20px;
+        text-align: center;
+        opacity: 0.4;
+
+        .version-tag {
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: var(--secondary);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 4px;
         }
     }
 

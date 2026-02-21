@@ -3,9 +3,7 @@ import { redirect, fail } from "@sveltejs/kit";
 import type { PageServerLoad, Actions } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
-	if (!locals.user) redirect(302, "/login");
-
-	// Carregar todos os posts que foram aprovados pela auditoria
+	// Carregar todos os posts aprovados
 	const posts = await prisma.post.findMany({
 		where: {
 			status: "completed",
@@ -20,35 +18,39 @@ export const load: PageServerLoad = async ({ locals }) => {
 			_count: {
 				select: { likes: true },
 			},
-			likes: {
-				where: {
-					userId: locals.user.id,
-				},
-			},
+			// Carregar likes apenas se o usuário estiver logado
+			...(locals.user ? {
+				likes: {
+					where: {
+						userId: locals.user.id,
+					},
+				}
+			} : {})
 		},
 		orderBy: {
 			createdAt: "desc",
 		},
 	});
 
-	// Mapear para facilitar o uso no frontend e resolver serialização do BigInt
+	// Mapear posts com status de like (seguro para anônimos)
 	const sanitizedPosts = posts.map((post) => ({
 		...post,
-		id: post.id.toString(), // Conversão vital para JSON/SvelteKit
+		id: post.id.toString(),
 		likesCount: post._count.likes,
-		isLiked: post.likes.length > 0,
+		isLiked: locals.user ? post.likes.length > 0 : false,
 	}));
 
 	return {
 		posts: sanitizedPosts,
+		user: locals.user // Passamos o user (pode ser null)
 	};
 };
 
 export const actions: Actions = {
 	like: async ({ locals, request }) => {
+		// Se não estiver logado, redireciona para o login ao tentar curtir
 		if (!locals.user) {
-			locals.logger.warn("Tentativa de like sem login.");
-			redirect(302, "/login");
+			throw redirect(302, "/login");
 		}
 
 		const data = await request.formData();
@@ -65,10 +67,7 @@ export const actions: Actions = {
 				select: { id: true },
 			});
 
-			if (!post) {
-				locals.logger.warn({ postId }, "Tentativa de like em post inexistente.");
-				return fail(404, { message: "Post não encontrado." });
-			}
+			if (!post) return fail(404, { message: "Post não encontrado." });
 
 			const existingLike = await prisma.like.findUnique({
 				where: {
@@ -78,16 +77,12 @@ export const actions: Actions = {
 
 			if (existingLike) {
 				await prisma.like.delete({
-					where: {
-						userId_postId: { userId, postId: id },
-					},
+					where: { userId_postId: { userId, postId: id } },
 				});
-				locals.logger.info({ userId, postId: id.toString() }, "Post unliked");
 			} else {
 				await prisma.like.create({
 					data: { userId, postId: id },
 				});
-				locals.logger.info({ userId, postId: id.toString() }, "Post liked");
 			}
 
 			return { success: true };

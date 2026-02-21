@@ -1,52 +1,62 @@
-# Projeto Sewer Comedy: Roteiro Técnico
+# Projeto Sewer Comedy 🔥: Roteiro Técnico
 
 ## 1. Introdução
 
-Este documento delineia o plano de desenvolvimento estratégico para o projeto Sewer Comedy. O objetivo é fornecer uma estrutura de marcos e tarefas sequenciais para a construção de uma plataforma de mídia social. A metodologia foca em entregas incrementais com critérios de aceitação claros para cada fase.
+Este documento delineia o plano de desenvolvimento estratégico para o projeto **Sewer Comedy**. O objetivo é fornecer uma estrutura de marcos e tarefas sequenciais para a construção de uma plataforma de mídia social ácida. A metodologia foca em entregas incrementais com critérios de aceitação claros para cada fase.
 
-### 1.1. Stack Tecnológica de Referência
-*   **Framework:** SvelteKit (Svelte 5)
-*   **Autenticação:** Better Auth
-*   **Banco de Dados:** PostgreSQL
-*   **ORM:** Prisma
-*   **Armazenamento de Objetos:** MinIO
+### 1.1. Status de Lançamento
+*   **Versão Atual:** `v0.1.0-alpha`
+*   **Ambiente:** Produção (Magalu Cloud) + Dev (MinIO Docker)
+*   **Status Geral:** Core funcional, feed interativo e auditoria humana ativos.
+
+### 1.2. Stack Tecnológica
+*   **Framework:** SvelteKit (Svelte 5 - Runas)
+*   **Autenticação:** Better Auth + Resend (E-mail Verification)
+*   **Banco de Dados:** PostgreSQL + Prisma ORM
+*   **Armazenamento:** S3 Compatible + Caddy Cache (Edge)
+*   **Observabilidade:** Pino Structured Logging
 
 ## 2. Roteiro de Desenvolvimento
 
-O projeto está segmentado em três marcos principais. Cada marco agrupa um conjunto de tarefas técnicas destinadas a construir uma funcionalidade central e coesa.
-
 ### Milestone 1: Infraestrutura de Autenticação e Acesso
-**Objetivo:** Estabelecer um sistema de autenticação de usuários robusto, incluindo registro, login, logout e controle de acesso a rotas.
-**Tempo Estimado:** 4-6 horas.
+**Status:** 100% ✅
 
-| Tarefa ID | Descrição da Tarefa                   | Critérios de Aceitação                                                              | Documento Técnico                                    | Status |
-| :-------- | :------------------------------------ | :---------------------------------------------------------------------------------- | :--------------------------------------------------- | :----- |
-| **01**    | **Implementação do Core de Autenticação** | O sistema deve ser capaz de validar sessões via hooks do servidor.                  | [TASK-01](./.docs/TASK-01-Autenticacao-Core.md)      | ✅ |
-| **02**    | **Desenvolvimento da UI de Autenticação** | Formulários de registro e login devem interagir com a API de autenticação.          | [TASK-02](./.docs/TASK-02-Autenticacao-UI.md)        | ✅ |
-| **03**    | **Controle de Acesso e Perfil Básico**    | Rotas protegidas devem redirecionar usuários não autenticados. Usuário logado acessa uma página de perfil. | [TASK-03](./.docs/TASK-03-Controle-Acesso.md)        | ✅ |
+| ID | Tarefa | Critérios de Aceitação | Status |
+| :-- | :--- | :--- | :--- |
+| 01 | Core de Autenticação | Better Auth integrado ao Prisma. | ✅ |
+| 02 | UI de Autenticação | Login/Cadastro minimalista em Svelte 5. | ✅ |
+| 03 | Controle de Acesso | Redirecionamentos e Auditoria Humana funcional. | ✅ |
 
 ### Milestone 2: Gestão de Conteúdo Multimídia
-**Objetivo:** Implementar a capacidade dos usuários de criar, publicar e visualizar conteúdo na plataforma.
-**Tempo Estimado:** 6-8 horas.
+**Status:** 100% ✅
 
-| Tarefa ID | Descrição da Tarefa             | Critérios de Aceitação                                                              | Documento Técnico                                | Status |
-| :-------- | :------------------------------ | :---------------------------------------------------------------------------------- | :----------------------------------------------- | :----- |
-| **04**    | **Integração com Object Storage** | O serviço de backend deve ser capaz de se conectar e autenticar com o MinIO.        | [TASK-04](./.docs/TASK-04-Integracao-MinIO.md)   | ✅ |
-| **05**    | **Implementação do Fluxo de Upload**  | A UI deve permitir a seleção e envio de arquivos de mídia para o backend.          | [TASK-05](./.docs/TASK-05-Fluxo-Upload.md)       | ✅ |
-| **06**    | **Desenvolvimento do Feed Principal** | Posts publicados devem ser renderizados em uma lista cronológica na página inicial. | [TASK-06](./.docs/TASK-06-Feed-Principal.md)     | ✅ |
+| ID | Tarefa | Critérios de Aceitação | Status |
+| :-- | :--- | :--- | :--- |
+| 04 | Object Storage | Integração S3 (MinIO/Magalu) com Caddy Cache. | ✅ |
+| 05 | Fluxo de Upload | Studio com preview e validação MIME/Size. | ✅ |
+| 06 | Feed Principal | Navegação tátil/mouse/teclado fluida. | ✅ |
 
-### Milestone 3: Refinamento e Extensibilidade
-**Objetivo:** Melhorar a experiência do usuário e a resiliência do sistema, e planejar a expansão de funcionalidades.
-**Tempo Estimado:** Aberto.
+### Milestone 3: Refinamento e Observabilidade (Fase Alpha)
+**Status:** 90% 🔄
 
-| Tarefa ID | Descrição da Tarefa           | Critérios de Aceitação                                                              | Documento Técnico                                | Status |
-| :-------- | :---------------------------- | :---------------------------------------------------------------------------------- | :----------------------------------------------- | :----- |
-| **07**    | **Otimização da Interface (UI/UX)** | Implementação de indicadores de estado (loading, error) e melhoria da transição entre páginas. | [TASK-07](./.docs/TASK-07-Otimizacao-UI.md)      | 🔄 |
-| **08**    | **Implementação de Observabilidade** | Logs estruturados devem ser gerados para todas as operações críticas da API.       | [TASK-08](./.docs/TASK-08-Observabilidade.md)    | ✅ |
-| **09**    | **Planejamento de Novas Features**    | Análise e especificação técnica para funcionalidades futuras (e.g., comentários, likes). | [TASK-09](./.docs/TASK-09-Novas-Features.md)     | [ ] |
+| ID | Tarefa | Critérios de Aceitação | Status |
+| :-- | :--- | :--- | :--- |
+| 07 | Otimização UI/UX | Feedbacks de loading e transições de estado. | ✅ |
+| 08 | Observabilidade | Logs estruturados (Pino) e Request Tracking. | ✅ |
+| 09 | Verificação de E-mail | Fluxo obrigatório via Resend para uploads. | ✅ |
+
+### Milestone 4: Engajamento e Comunidade (Fase Beta)
+**Status:** 0% 🔲
+
+| ID | Tarefa | Critérios de Aceitação | Status |
+| :-- | :--- | :--- | :--- |
+| 10 | Sistema de Likes | Curtir/Descurtir posts com persistência. | ✅ |
+| 11 | Comentários | Discussão ácida em cada post. | [ ] |
+| 12 | Seguidores | Rede de conexões entre usuários. | [ ] |
+| 13 | Notificações | Avisos de interações em tempo real. | [ ] |
 
 ---
 
 ## 3. Metodologia de Trabalho
 
-Para cada tarefa listada, um documento técnico correspondente detalha o escopo, os requisitos e os critérios para validação. A conclusão de uma tarefa é premissa para iniciar a subsequente dentro de um mesmo marco.
+Conforme definido no `AGENTS.md`, todas as alterações devem ser propostas, auditadas para segurança e validadas antes da implementação. A integridade dos dados e a performance do feed são prioridades máximas.

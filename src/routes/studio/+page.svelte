@@ -6,7 +6,7 @@
     let isLoading = $state(false);
     let success = $state(false);
     let previewUrl = $state<string | null>(null);
-
+    let { data } = $props();
     function handleFileChange(e: Event) {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (file) {
@@ -27,14 +27,25 @@
                 <CheckCircle2 size={48} color="var(--accent)" />
                 <h2>Post enviado!</h2>
                 <p>Aguardando aprovação dos auditores.</p>
-                <button onclick={() => { success = false; previewUrl = null; }} class="btn-minimal">Novo post</button>
+                <button
+                    onclick={() => {
+                        success = false;
+                        previewUrl = null;
+                    }}
+                    class="btn-minimal">Novo post</button
+                >
             </div>
         {:else if !data.user.emailVerified}
             <div class="verify-email-state" in:fade>
                 <div class="icon">📧</div>
                 <h2>Verifique seu E-mail</h2>
-                <p>O esgoto exige autenticidade. Verifique seu e-mail para habilitar o upload de posts.</p>
-                <button class="btn-minimal" onclick={() => location.reload()}>Já verifiquei</button>
+                <p>
+                    O esgoto exige autenticidade. Verifique seu e-mail para
+                    habilitar o upload de posts.
+                </p>
+                <button class="btn-minimal" onclick={() => location.reload()}
+                    >Já verifiquei</button
+                >
             </div>
         {:else}
             <form
@@ -71,9 +82,9 @@
                     />
                 </label>
 
-                <textarea 
-                    name="comment" 
-                    placeholder="Escreva algo ácido..." 
+                <textarea
+                    name="comment"
+                    placeholder="Escreva algo ácido..."
                     rows="3"
                 ></textarea>
 
@@ -107,13 +118,20 @@
         padding: 30px;
         border-radius: 20px;
         border: 1px solid var(--border);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 
         header {
             text-align: center;
             margin-bottom: 24px;
-            h1 { color: var(--accent); margin: 0; }
-            p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+            h1 {
+                color: var(--accent);
+                margin: 0;
+            }
+            p {
+                color: var(--text-muted);
+                font-size: 0.9rem;
+                margin-top: 4px;
+            }
         }
     }
 
@@ -136,8 +154,13 @@
         justify-content: center;
         transition: all 0.2s;
 
-        &:hover { border-color: var(--secondary); }
-        &.has-preview { border-style: solid; border-color: var(--accent); }
+        &:hover {
+            border-color: var(--secondary);
+        }
+        &.has-preview {
+            border-style: solid;
+            border-color: var(--accent);
+        }
 
         .placeholder {
             display: flex;
@@ -145,7 +168,10 @@
             align-items: center;
             gap: 10px;
             color: var(--text-muted);
-            span { font-size: 0.85rem; font-weight: 500; }
+            span {
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
         }
 
         .preview {
@@ -154,7 +180,9 @@
             object-fit: cover;
         }
 
-        input { display: none; }
+        input {
+            display: none;
+        }
     }
 
     textarea {
@@ -166,7 +194,9 @@
         font-family: inherit;
         resize: none;
         outline: none;
-        &:focus { border-color: var(--secondary); }
+        &:focus {
+            border-color: var(--secondary);
+        }
     }
 
     .submit-btn {
@@ -183,20 +213,35 @@
         gap: 8px;
         transition: transform 0.1s;
 
-        &:disabled { opacity: 0.5; cursor: not-allowed; }
-        &:active:not(:disabled) { transform: scale(0.98); }
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        &:active:not(:disabled) {
+            transform: scale(0.98);
+        }
     }
 
-    .success-state, .verify-email-state {
+    .success-state,
+    .verify-email-state {
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 16px;
         padding: 20px 0;
-        h2 { color: var(--text); margin: 0; }
-        p { color: var(--text-muted); font-size: 0.9rem; }
-        .icon { font-size: 3rem; margin-bottom: 10px; }
+        h2 {
+            color: var(--text);
+            margin: 0;
+        }
+        p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
     }
 
     .btn-minimal {
@@ -209,6 +254,15 @@
         margin-top: 10px;
     }
 
-    :global(.spinner) { animation: spin 1s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    :global(.spinner) {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
 </style>

@@ -55,6 +55,8 @@ jobs:
           script: |
             set -e
             export PATH="$HOME/.bun/bin:$PATH"
+            export PATH"$HOME/.nvm/versions/node/v24.13.1/bin/node:$PATH"
+
             cd /opt/sewer-comedy
 
             # 1. Cria o .env no servidor com todos os secrets

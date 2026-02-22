@@ -1,0 +1,39 @@
+{
+	order cache before rewrite
+
+	cache {
+		ttl 6h
+		simplefs {
+			configuration {
+				size 10000
+				path /var/cache/caddy/media
+				directory_size 100MB
+			}
+		}
+	}
+}
+
+media.sewercomedy.fun {
+	@pending path /uploads/pending/*
+	respond @pending 403
+
+	cache
+
+	reverse_proxy https://sewer-comedy-s3.br-se1.magaluobjects.com {
+		transport http {
+			tls
+			tls_insecure_skip_verify
+		}
+		header_up Host sewer-comedy-s3.br-se1.magaluobjects.com
+		header_down -Set-Cookie
+		header_down -Cache-Control
+		header_down +Cache-Control "public, max-age=21600"
+	}
+}
+cauldrun.fun, www.cauldrun.fun {
+	redir https://sewercomedy.fun{uri} permanent
+}
+
+sewercomedy.fun {
+	reverse_proxy localhost:3000
+}

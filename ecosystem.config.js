@@ -4,6 +4,9 @@ export const apps = [
     name: "sewer-app",
     script: "./build/index.js",
     interpreter: "node",
-    interpreter_args: "--env-file=/opt/sewer-comedy/.env",
+    env: {
+      NODE_ENV: "production",
+      PORT: 3000
+    }
   },
 ];

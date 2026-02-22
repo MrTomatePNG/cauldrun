@@ -82,6 +82,8 @@ jobs:
             EOF
 
             bun install --production
+            # exporta antes de rodar o prisma
+            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
             ./node_modules/.bin/prisma migrate deploy
 
             pm2 restart sewer-app --update-env || pm2 start ecosystem.config.js

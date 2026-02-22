@@ -216,6 +216,7 @@ const { user } = data;
 
     .profile-footer {
         margin-top: 40px;
+        bottom: 0;
         padding-bottom: 20px;
         text-align: center;
         opacity: 0.4;

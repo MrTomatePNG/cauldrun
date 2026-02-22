@@ -78,7 +78,7 @@ export const actions: Actions = {
         newStatus = "complete";
 
         const oldKey = new URL(post.mediaUrl).pathname.slice(1);
-        const newKey = oldKey.replace("uploads/pending/", "uploads/public");
+        const newKey = oldKey.replace("uploads/pending/", "uploads/public/");
 
         await s3Client.send(
           new CopyObjectCommand({

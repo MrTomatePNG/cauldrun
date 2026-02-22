@@ -74,6 +74,7 @@ export const actions: Actions = {
           Body: buffer,
           ContentType: media.type,
           ContentDisposition: "inline",
+          CacheControl: "no-cache, no-store, must-revalidate",
           Metadata: { userId: locals.user.id },
         }),
       );
@@ -91,6 +92,7 @@ export const actions: Actions = {
             Body: thumbBuffer,
             ContentDisposition: "inline",
             ContentType: "image/jpeg",
+            CacheControl: "no-cache, no-store, must-revalidate",
           }),
         );
         thumbUrl = `https://media.sewercomedy.fun/${thumbKey}`;

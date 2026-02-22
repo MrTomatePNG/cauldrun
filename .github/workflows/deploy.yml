@@ -54,12 +54,18 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             set -e
+
+            # carrega o nvm manualmente — não-interactive shell não lê .bashrc
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
             export PATH="$HOME/.bun/bin:$PATH"
-            export PATH="$HOME/.nvm/versions/node/v24.13.1/bin/node:$PATH"
+
+            # confirma que pegou o node certo
+            node --version
 
             cd /opt/sewer-comedy
 
-            # 1. Cria o .env no servidor com todos os secrets
             cat > .env << 'EOF'
             PORT=3000
             BODY_SIZE_LIMIT=10M
@@ -75,12 +81,8 @@ jobs:
             RESEND_API_KEY=${{ secrets.PROD_RESEND_API_KEY }}
             EOF
 
-            # 2. Instala dependências
             bun install --production
+            ./node_modules/.bin/prisma migrate deploy
 
-            # 3. Roda migrations
-            bunx prisma migrate deploy
-
-            # 4. Reinicia — lê o .env automaticamente via ecosystem
             pm2 restart sewer-app --update-env || pm2 start ecosystem.config.js
             pm2 save

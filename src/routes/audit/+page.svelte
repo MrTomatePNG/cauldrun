@@ -42,7 +42,7 @@
                     <div class="media-container">
                         {#if post.mediaType === "video"}
                             <video
-                                src={post.mediaUrl}
+                                src={post.auditUrl}
                                 muted
                                 autoplay
                                 loop
@@ -51,12 +51,12 @@
                             ></video>
                         {:else}
                             <img
-                                src={post.mediaUrl}
+                                src={post.auditUrl}
                                 alt="Preview"
                                 onerror={(e) => {
                                     console.error(
                                         "Erro ao carregar imagem:",
-                                        post.mediaUrl,
+                                        post.auditUrl,
                                     );
                                     (e.currentTarget as HTMLImageElement).src =
                                         "https://placehold.co/400x400/161616/da8a67?text=Erro+no+S3";

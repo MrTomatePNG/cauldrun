@@ -3,11 +3,12 @@
 
 	cache {
 		ttl 6h
+		allowed_http_verbs GET HEAD
+		status_codes 200 206
 		simplefs {
 			configuration {
-				size 10000
 				path /var/cache/caddy/media
-				directory_size 100MB
+				directory_size 2GB
 			}
 		}
 	}

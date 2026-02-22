@@ -3,8 +3,7 @@ import type { Actions, PageServerLoad } from "./$types";
 import { s3Client, bucketName } from "$lib/server/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import prisma from "$lib/prisma";
-import { S3_ENDPOINT } from "$env/static/private";
-
+import { fileTypeFromBuffer } from "file-type";
 export const load: PageServerLoad = ({ locals }) => {
   if (!locals.user) redirect(302, "/login");
 
@@ -41,6 +40,13 @@ export const actions: Actions = {
       return fail(400, { message: "Arquivo inválido." });
     }
 
+    const buffer = Buffer.from(await media.arrayBuffer());
+    const detect = await fileTypeFromBuffer(buffer);
+
+    if (!detect || detect.mime !== media.type) {
+      return fail(400, { message: "arquivo inavlido" });
+    }
+
     const MAX_SIZE = 10 * 1024 * 1024;
     if (media.size > MAX_SIZE)
       return fail(400, { message: "Arquivo excede o limite de 10MB." });
@@ -59,7 +65,7 @@ export const actions: Actions = {
       const buffer = Buffer.from(await media.arrayBuffer());
       const extension = media.type.split("/")[1];
       const fileName = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
-      const fileKey = `uploads/${locals.user.id}/${fileName}`;
+      const fileKey = `uploads/pending/${locals.user.id}/${fileName}`;
 
       await s3Client.send(
         new PutObjectCommand({
@@ -67,6 +73,7 @@ export const actions: Actions = {
           Key: fileKey,
           Body: buffer,
           ContentType: media.type,
+          ContentDisposition: "inline",
           Metadata: { userId: locals.user.id },
         }),
       );
@@ -82,6 +89,7 @@ export const actions: Actions = {
             Bucket: bucketName,
             Key: thumbKey,
             Body: thumbBuffer,
+            ContentDisposition: "inline",
             ContentType: "image/jpeg",
           }),
         );

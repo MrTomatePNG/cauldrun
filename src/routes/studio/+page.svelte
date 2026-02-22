@@ -1,5 +1,10 @@
 <script lang="ts">
-    import { ImagePlus, LoaderCircle, CircleCheckBig } from "lucide-svelte";
+    import {
+        ImagePlus,
+        LoaderCircle,
+        CircleCheckBig,
+        Mail,
+    } from "lucide-svelte";
     import { enhance } from "$app/forms";
     import { fade } from "svelte/transition";
     import { createVideoThumbnail, dataUrlToFile } from "@/lib/utils/thumbs.js";
@@ -51,7 +56,7 @@
             </div>
         {:else if !data.user.emailVerified}
             <div class="verify-email-state" in:fade>
-                <div class="icon">📧</div>
+                <div class="icon"><Mail /></div>
                 <h2>Verifique seu E-mail</h2>
                 <p>
                     O esgoto exige autenticidade. Verifique seu e-mail para

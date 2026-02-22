@@ -1,6 +1,6 @@
 <script lang="ts">
     import Feed from "@/lib/components/Feed.svelte";
-    import { ThumbsUp } from "lucide-svelte";
+    import { ThumbsUp, Trash2 } from "lucide-svelte";
     import { enhance } from "$app/forms";
 
     let { data } = $props();
@@ -36,26 +36,42 @@
                         <div class="meta">
                             <span class="author">@{post.user.username}</span>
 
-                            <form method="POST" action="?/like" use:enhance>
-                                <input
-                                    type="hidden"
-                                    name="postId"
-                                    value={post.id}
-                                />
-                                <button
-                                    type="submit"
-                                    class="like-btn"
-                                    class:liked={post.isLiked}
-                                >
-                                    <ThumbsUp
-                                        size={24}
-                                        fill={post.isLiked
-                                            ? "var(--accent)"
-                                            : "none"}
+                            <div class="actions-group">
+                                {#if data.user && (data.user.id === post.userId || data.user.role === 'admin')}
+                                    <form method="POST" action="?/deletePost" use:enhance={() => {
+                                        if (!confirm('Tem certeza que quer apagar esse meme?')) return;
+                                        return async ({ update }) => {
+                                            await update();
+                                        };
+                                    }}>
+                                        <input type="hidden" name="postId" value={post.id} />
+                                        <button type="submit" class="delete-btn" title="Apagar Post">
+                                            <Trash2 size={22} />
+                                        </button>
+                                    </form>
+                                {/if}
+
+                                <form method="POST" action="?/like" use:enhance>
+                                    <input
+                                        type="hidden"
+                                        name="postId"
+                                        value={post.id}
                                     />
-                                    <span>{post.likesCount}</span>
-                                </button>
-                            </form>
+                                    <button
+                                        type="submit"
+                                        class="like-btn"
+                                        class:liked={post.isLiked}
+                                    >
+                                        <ThumbsUp
+                                            size={24}
+                                            fill={post.isLiked
+                                                ? "var(--accent)"
+                                                : "none"}
+                                        />
+                                        <span>{post.likesCount}</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                         <p class="comment">{post.comment || ""}</p>
                     </div>
@@ -114,10 +130,30 @@
             margin-bottom: 8px;
         }
 
+        .actions-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
         .author {
             color: var(--accent);
             font-weight: bold;
             font-size: 0.95rem;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            &:hover {
+                color: #ff4444;
+                transform: scale(1.1);
+            }
         }
 
         .like-btn {

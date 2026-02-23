@@ -84,7 +84,7 @@ jobs:
             S3_SECRET_KEY="${{ secrets.S3_SECRET_KEY }}" \
             S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
             S3_CDN_URL="${{ secrets.S3_CDN_URL }}" \
-            RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" \
+            RESEND_API_KEY="${{ secrets.PROD_RESEND_API_KEY }}" \
             ORIGIN="https://sewercomedy.fun" \
             NODE_ENV="production" \
             BODY_SIZE_LIMIT="10M" \

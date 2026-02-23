@@ -5,6 +5,7 @@ import {
 	S3_REGION,
 	S3_SECRET_KEY,
 	S3_BUCKET_NAME,
+	S3_CDN_URL,
 } from "$env/static/private";
 
 export const s3Client = new S3Client({
@@ -18,3 +19,4 @@ export const s3Client = new S3Client({
 });
 
 export const bucketName = S3_BUCKET_NAME;
+export const cdnUrl = S3_CDN_URL || "https://media.sewercomedy.fun";

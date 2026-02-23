@@ -1,6 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
-import { s3Client, bucketName } from "$lib/server/s3";
+import { s3Client, bucketName, cdnUrl } from "$lib/server/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import prisma from "$lib/prisma";
 import { fileTypeFromBuffer } from "file-type";
@@ -79,7 +79,7 @@ export const actions: Actions = {
         }),
       );
 
-      const mediaUrl = `https://media.sewercomedy.fun/${fileKey}`;
+      const mediaUrl = `${cdnUrl}/${fileKey}`;
 
       let thumbUrl: string | null = null;
       if (thumbnail instanceof File) {
@@ -95,7 +95,7 @@ export const actions: Actions = {
             CacheControl: "no-cache, no-store, must-revalidate",
           }),
         );
-        thumbUrl = `https://media.sewercomedy.fun/${thumbKey}`;
+        thumbUrl = `${cdnUrl}/${thumbKey}`;
       } else {
         thumbUrl = mediaUrl;
       }
@@ -106,6 +106,7 @@ export const actions: Actions = {
           comment: comment?.slice(0, 500) || "",
           mediaUrl: mediaUrl,
           mediaType: media.type.startsWith("video") ? "video" : "image",
+          mimeType: media.type,
           thumbUrl: thumbUrl,
           status: "pending",
         },

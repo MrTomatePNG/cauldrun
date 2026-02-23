@@ -12,6 +12,7 @@ model Post {
   userId    String
   comment   String?
   mediaType MediaType
+  mimeType  String     @default("image/jpeg") @db.VarChar(100)
   mediaUrl  String     @db.Text
   thumbUrl  String     @db.Text
   status    PostStatus @default(pending)

@@ -2,7 +2,7 @@ import { error, redirect } from "@sveltejs/kit";
 import prisma from "@/lib/prisma";
 import type { Actions, PageServerLoad } from "./$types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { bucketName, s3Client } from "@/lib/server/s3";
+import { bucketName, s3Client, cdnUrl } from "@/lib/server/s3";
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
@@ -25,7 +25,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const queue: AuditPost[] = await Promise.all(
     posts.map(async (post) => {
-      const key = new URL(post.mediaUrl).pathname.slice(1);
+      // Extração segura da key removendo a URL do CDN
+      const key = post.mediaUrl.replace(`${cdnUrl}/`, "");
 
       const auditUrl = await getSignedUrl(
         s3Client,
@@ -74,12 +75,12 @@ export const actions: Actions = {
       let newMediaUrl = post.mediaUrl;
       let newThumbUrl = post.thumbUrl;
 
-      const mediaKey = new URL(post.mediaUrl).pathname.slice(1);
+      const mediaKey = post.mediaUrl.replace(`${cdnUrl}/`, "");
       const thumbKey = post.thumbUrl
-        ? new URL(post.thumbUrl).pathname.slice(1)
+        ? post.thumbUrl.replace(`${cdnUrl}/`, "")
         : null;
 
-      const moveS3 = async (oldKey: string, targetFolder: string, mediaType: string) => {
+      const moveS3 = async (oldKey: string, targetFolder: string, contentType: string) => {
         if (!oldKey.includes("uploads/pending/")) return oldKey;
 
         const newKey = oldKey.replace("uploads/pending/", `uploads/${targetFolder}/`);
@@ -91,11 +92,10 @@ export const actions: Actions = {
             Bucket: bucketName,
             CopySource: `${bucketName}/${oldKey}`,
             Key: newKey,
-            // Injetar cache agressivo se for para a pasta pública
             CacheControl: isPublic ? "public, max-age=31536000, immutable" : "no-cache, no-store, must-revalidate",
             ContentDisposition: "inline",
-            ContentType: mediaType,
-            MetadataDirective: "REPLACE", // Necessário para aplicar o novo CacheControl
+            ContentType: contentType,
+            MetadataDirective: "REPLACE",
           }),
         );
         await s3Client.send(
@@ -118,25 +118,25 @@ export const actions: Actions = {
 
       if (action === "approve") {
         newStatus = "completed";
-        const movedMediaKey = await moveS3(mediaKey, "public", post.mediaType);
-        newMediaUrl = `https://media.sewercomedy.fun/${movedMediaKey}`;
+        const movedMediaKey = await moveS3(mediaKey, "public", post.mimeType);
+        newMediaUrl = `${cdnUrl}/${movedMediaKey}`;
 
         if (thumbKey) {
           if (thumbKey === mediaKey) {
             newThumbUrl = newMediaUrl;
           } else {
             const movedThumbKey = await moveS3(thumbKey, "public", "image/jpeg");
-            newThumbUrl = `https://media.sewercomedy.fun/${movedThumbKey}`;
+            newThumbUrl = `${cdnUrl}/${movedThumbKey}`;
           }
         }
       } else if (action === "reject") {
         newStatus = "rejected";
-        const movedMediaKey = await moveS3(mediaKey, "rejected", post.mediaType);
-        newMediaUrl = `https://media.sewercomedy.fun/${movedMediaKey}`;
+        const movedMediaKey = await moveS3(mediaKey, "rejected", post.mimeType);
+        newMediaUrl = `${cdnUrl}/${movedMediaKey}`;
 
         if (thumbKey && thumbKey !== mediaKey) {
           const movedThumbKey = await moveS3(thumbKey, "rejected", "image/jpeg");
-          newThumbUrl = `https://media.sewercomedy.fun/${movedThumbKey}`;
+          newThumbUrl = `${cdnUrl}/${movedThumbKey}`;
         } else if (thumbKey === mediaKey) {
           newThumbUrl = newMediaUrl;
         }

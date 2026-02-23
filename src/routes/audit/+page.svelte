@@ -48,6 +48,7 @@
                                 loop
                                 playsinline
                                 controls
+                                crossorigin="anonymous"
                             ></video>
                         {:else}
                             <img

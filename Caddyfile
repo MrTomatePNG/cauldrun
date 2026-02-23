@@ -18,6 +18,11 @@
 }
 
 media.sewercomedy.fun {
+	log {
+		output file /var/log/caddy/media.log
+		format json
+	}
+
 	# CORS Headers - Crucial para Range Requests e Cross-Origin
 	header {
 		Access-Control-Allow-Origin "https://sewercomedy.fun"
@@ -53,5 +58,10 @@ cauldrun.fun, www.cauldrun.fun {
 }
 
 sewercomedy.fun {
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
+
 	reverse_proxy localhost:3000
 }

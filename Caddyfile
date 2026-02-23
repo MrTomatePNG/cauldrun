@@ -1,6 +1,10 @@
 {
 	order cache before rewrite
 
+	servers {
+		metrics
+	}
+
 	cache {
 		ttl 6h
 		allowed_http_verbs GET HEAD

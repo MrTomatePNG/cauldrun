@@ -1,4 +1,7 @@
-export function createVideoThumbnail(file: File): Promise<string> {
+import path from "path";
+import type { Readable } from "stream";
+
+export const createVideoThumbnail = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement("video");
     const url = URL.createObjectURL(file);
@@ -52,13 +55,16 @@ export function createVideoThumbnail(file: File): Promise<string> {
 
     video.load();
   });
-}
+};
 
-export function dataUrlToFile(dataUrl: string, filename: string): File {
+/**
+ * Converte uma DataURL (base64) em um objeto File do navegador.
+ */
+export const dataUrlToFile = (dataUrl: string, filename: string): File => {
   const [header, data] = dataUrl.split(",");
   const mime = header.match(/:(.*?);/)?.[1] ?? "image/jpeg";
   const bytes = atob(data);
   const arr = new Uint8Array(bytes.length);
   for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
   return new File([arr], filename, { type: mime });
-}
+};

@@ -5,6 +5,13 @@ import { sequence } from "@sveltejs/kit/hooks";
 import { baseLogger } from "$lib/server/logger";
 import type { Handle } from "@sveltejs/kit";
 
+// Inicializa os workers apenas se não estiver no processo de build
+if (!building) {
+  import("@/lib/server/workers").then(() => {
+    baseLogger.info("Workers de mídia inicializados no hooks.server.ts");
+  });
+}
+
 const logger: Handle = async ({ event, resolve }) => {
   const start = Date.now();
   const requestId = crypto.randomUUID();

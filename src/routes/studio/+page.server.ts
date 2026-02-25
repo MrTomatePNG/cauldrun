@@ -4,6 +4,8 @@ import { s3Client, bucketName, cdnUrl } from "$lib/server/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import prisma from "$lib/prisma";
 import { fileTypeFromBuffer } from "file-type";
+import { mediaQueue } from "$lib/server/queue";
+
 export const load: PageServerLoad = ({ locals }) => {
   if (!locals.user) redirect(302, "/login");
 
@@ -108,22 +110,40 @@ export const actions: Actions = {
           mediaType: media.type.startsWith("video") ? "video" : "image",
           mimeType: media.type,
           thumbUrl: thumbUrl,
-          status: "pending",
+          status: "processing",
         },
       });
+
+      try {
+        await mediaQueue.add("process-upload", {
+          postId: post.id.toString(),
+          userId: locals.user.id,
+          fileKey: fileKey,
+          mimeType: media.type,
+        });
+        locals.logger.info(
+          { postId: post.id.toString(), queue: "media-processing" },
+          "Job enviado para a fila de processamento",
+        );
+      } catch (queueError) {
+        locals.logger.error({ err: queueError }, "Falha ao adicionar à fila");
+      }
 
       locals.logger.info(
         { userId: locals.user.id, postId: post.id.toString(), fileKey },
         "Upload realizado com sucesso.",
       );
-      
+
       return { success: true };
     } catch (err: any) {
-      locals.logger.error({ 
-        message: err.message, 
-        stack: err.stack,
-        userId: locals.user.id 
-      }, "Erro crítico no upload");
+      locals.logger.error(
+        {
+          message: err.message,
+          stack: err.stack,
+          userId: locals.user.id,
+        },
+        "Erro crítico no upload",
+      );
       return fail(500, { message: "Falha ao processar arquivo." });
     }
   },

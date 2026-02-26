@@ -25,7 +25,7 @@ export const bucketName = S3_BUCKET_NAME;
 export const cdnUrl = S3_CDN_URL || "https://media.sewercomedy.fun";
 
 /**
- * Cliente S3 configurado com credenciais e endpoint do serviço de armazenamento.
+ * Cliente S3 configurado dinamicamente com variáveis estáticas.
  */
 export const s3Client = new S3Client({
   endpoint: S3_ENDPOINT,
@@ -39,7 +39,6 @@ export const s3Client = new S3Client({
 
 /**
  * Converte um Stream do Node em Buffer.
- * Útil para processamento com Sharp ou quando o tamanho total é necessário.
  */
 export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   const chunks: Buffer[] = [];
@@ -69,7 +68,6 @@ export const resolveContentType = (filename: string): string => {
 
 /**
  * Upload genérico para o S3 com metadados padronizados.
- * Suporta Buffer, String ou Readable Stream.
  */
 export const uploadObject = async (params: {
   key: string;

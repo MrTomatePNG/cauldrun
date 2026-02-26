@@ -4,32 +4,31 @@ import { authClient } from "@/lib/auth-client";
 import { goto } from "$app/navigation";
 
 let { data } = $props();
-const { user } = data;
 </script>
 
 <div class="profile-page">
-    {#if user}
+    {#if data.user}
         <div class="profile-card">
             <div class="profile-image-container">
-                {#if user.image}
+                {#if data.user.image}
                     <img
-                        src={user.image}
-                        alt="{user.name}'s profile"
+                        src={data.user.image}
+                        alt="{data.user.name}'s profile"
                         class="profile-image"
                     />
                 {:else}
                     <User size={96} class="profile-placeholder-icon" />
                 {/if}
             </div>
-            <h1 class="profile-name">{user.name}</h1>
-            <p class="profile-email">{user.email}</p>
-            {#if user.emailVerified}
+            <h1 class="profile-name">{data.user.name}</h1>
+            <p class="profile-email">{data.user.email}</p>
+            {#if data.user.emailVerified}
                 <span class="email-verified">E-mail verificado</span>
             {:else}
                 <span class="email-not-verified">E-mail não verificado</span>
             {/if}
 
-            {#if user.role === "admin"}
+            {#if data.user.role === "admin"}
                 <div class="admin-section">
                     <h3>Administração</h3>
                     <a href="/audit" class="audit-link">

@@ -1,5 +1,6 @@
-import path from "path";
-import type { Readable } from "stream";
+/**
+ * Utilitários de mídia para o navegador.
+ */
 
 export const createVideoThumbnail = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {

@@ -63,5 +63,5 @@ sewercomedy.fun {
 		format json
 	}
 
-	reverse_proxy localhost:3000
+	reverse_proxy app:3000
 }

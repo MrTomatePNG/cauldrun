@@ -40,17 +40,7 @@ media.sewercomedy.fun {
 
 	cache
 
-	reverse_proxy https://sewer-comedy-s3.br-se1.magaluobjects.com {
-		transport http {
-			tls
-			tls_insecure_skip_verify
-		}
-		header_up Host sewer-comedy-s3.br-se1.magaluobjects.com
-		header_up Accept-Encoding identity
-		header_down -Set-Cookie
-		header_down -Cache-Control
-		header_down +Cache-Control "public, max-age=31536000, immutable"
-	}
+	reverse_proxy minio:9000
 }
 
 cauldrun.fun, www.cauldrun.fun {

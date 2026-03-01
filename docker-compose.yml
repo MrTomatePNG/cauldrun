@@ -1,19 +1,64 @@
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sewer-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - sewer-network
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - sewer-network
+
   app:
     image: ghcr.io/${GITHUB_REPOSITORY}/app:latest
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
     environment:
-      - DATABASE_URL=${PROD_DATABASE_URL}
-      - REDIS_URL=${PROD_REDIS_URL}
-      - REDIS_PASSWD=${PROD_REDIS_PASSWD}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://redis:6379
+      - REDIS_PASSWD=${REDIS_PASSWD}
       - BETTER_AUTH_SECRET=${PROD_BETTER_AUTH_SECRET}
       - BETTER_AUTH_BASE_URL=${PROD_BETTER_AUTH_BASE_URL}
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_REGION=${S3_REGION}
-      - S3_ACCESS_KEY=${PROD_S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${PROD_S3_SECRET_KEY}
+      - S3_ENDPOINT=http://minio:9000
+      - S3_REGION=us-east-1
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
-      - S3_CDN_URL=${S3_CDN_URL}
+      - S3_CDN_URL=https://media.sewercomedy.fun
       - RESEND_API_KEY=${PROD_RESEND_API_KEY}
       - ORIGIN=https://sewercomedy.fun
       - NODE_ENV=production
@@ -35,6 +80,7 @@ services:
       - /var/log/caddy:/var/log/caddy
     depends_on:
       - app
+      - minio
     networks:
       - sewer-network
 
@@ -43,6 +89,9 @@ networks:
     driver: bridge
 
 volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
   caddy_data:
   caddy_config:
   caddy_cache:

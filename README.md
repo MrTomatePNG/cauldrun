@@ -1,4 +1,4 @@
-# 📢 [POC] Sewer Comedy 🔥: Prova de Conceito & Estudo
+# 📢 [POC] Buero Aberto 🕳️: Prova de Conceito & Estudo
 
 ⚠️ **AVISO:** Este repositório é formalmente uma **Prova de Conceito (POC)** e foi desenvolvido para fins de **estudo**.
 
@@ -61,8 +61,3 @@ Este documento delineia o plano de desenvolvimento estratégico para o projeto *
 | 12 | Seguidores | Rede de conexões entre usuários. | [ ] |
 | 13 | Notificações | Avisos de interações em tempo real. | [ ] |
 
----
-
-## 3. Metodologia de Trabalho
-
-Conforme definido no `GEMINI.md`, todas as alterações foram propostas, auditadas para segurança e validadas. A integridade dos dados e a performance do feed foram prioridades máximas durante o desenvolvimento deste estudo.

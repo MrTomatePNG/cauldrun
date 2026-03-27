@@ -16,7 +16,8 @@ RUN bun run build
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y ffmpeg openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+# Dependências de runtime (FFmpeg para processamento de vídeo)
+RUN apk add --no-cache ffmpeg openssl ca-certificates
 
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./package.json

@@ -1,31 +1,35 @@
 {
-	order cache before rewrite
-
+	# Configurações globais
 	servers {
 		metrics
 	}
-
-	cache {
-		ttl 6h
-		allowed_http_verbs GET HEAD
-		simplefs {
-			configuration {
-				path /var/cache/caddy/media
-				directory_size 2GB
-			}
-		}
-	}
+	# Admin API necessária para o healthcheck e reloads
+	admin localhost:2019
 }
 
-media.buero.fun {
+# --- DESENVOLVIMENTO LOCAL ---
+http://localhost:8080 {
 	log {
-		output file /var/log/caddy/media.log
+		output stdout
 		format json
 	}
 
-	# CORS Headers - Crucial para Range Requests e Cross-Origin
+	# Proxy para o Vite/SvelteKit no container app-dev
+	reverse_proxy app-dev:5173 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+}
+
+# --- CDN / Mídia via Varnish (PROD/DEV) ---
+http://media.buero.fun, http://localhost:9000 {
+	log {
+		output stdout
+		format json
+	}
+
 	header {
-		Access-Control-Allow-Origin "https://buero.fun"
+		Access-Control-Allow-Origin "*"
 		Access-Control-Allow-Methods "GET, OPTIONS"
 		Access-Control-Allow-Headers "Range, Content-Type, X-Requested-With"
 		Access-Control-Expose-Headers "Content-Range, Content-Length, Accept-Ranges"
@@ -35,19 +39,24 @@ media.buero.fun {
 	@options method OPTIONS
 	respond @options 204
 
-	@pending path /uploads/pending/*
-	respond @pending 403
-
-	cache
-
-	reverse_proxy varnish:80
+	reverse_proxy varnish:80 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+	}
 }
 
+# --- PRODUÇÃO ---
 buero.fun, www.buero.fun {
 	log {
-		output file /var/log/caddy/access.log
+		output stdout
 		format json
 	}
 
-	reverse_proxy app:3000
+	encode zstd gzip
+
+	reverse_proxy app:3000 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
 }

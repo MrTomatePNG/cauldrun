@@ -5,6 +5,7 @@ import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { env } from "$env/dynamic/private";
 import { sendVerificationEmail } from "$lib/server/email";
+import { rateLimit } from "better-auth-rate-limit";
 import prisma from "$lib/prisma";
 
 export const auth = betterAuth({
@@ -44,7 +45,28 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [sveltekitCookies(getRequestEvent), username()],
+  plugins: [
+    sveltekitCookies(getRequestEvent),
+    username(),
+    rateLimit({
+      window: 60, // 1 minuto
+      max: 30, // Máximo 30 requests globais/min por IP
+      customRules: {
+        "/sign-in": {
+          window: 60,
+          max: 5, // Apenas 5 tentativas de login por minuto
+        },
+        "/sign-up": {
+          window: 3600, // 1 hora
+          max: 10, // Apenas 10 cadastros por hora por IP
+        },
+        "/verify-email": {
+          window: 3600,
+          max: 5, // Apenas 5 reenvios de e-mail por hora
+        },
+      },
+    }),
+  ],
 });
 
 export type Auth = typeof auth;

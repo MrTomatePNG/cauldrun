@@ -47,17 +47,20 @@ jobs:
             cd /opt/buero
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            export GITHUB_REPOSITORY="${{ vars.REPO }}"
-            export DB_USER="${{ secrets.DB_USER }}"
-            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
-            export DB_NAME="${{ secrets.DB_NAME }}"
+            export GITHUB_REPOSITORY="${{ github.repository }}"
+
+            # Usar segredos diretos para evitar composição visível no YAML
+            export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
+            export REDIS_URL="${{ secrets.PROD_REDIS_URL }}"
             export REDIS_PASSWD="${{ secrets.PROD_REDIS_PASSWD }}"
-            export PROD_BETTER_AUTH_SECRET="${{ secrets.PROD_BETTER_AUTH_SECRET }}"
-            export PROD_BETTER_AUTH_BASE_URL="${{ secrets.PROD_BETTER_AUTH_BASE_URL }}"
+            export BETTER_AUTH_SECRET="${{ secrets.PROD_BETTER_AUTH_SECRET }}"
+            export BETTER_AUTH_BASE_URL="${{ secrets.PROD_BETTER_AUTH_BASE_URL }}"
             export S3_ACCESS_KEY="${{ secrets.PROD_S3_ACCESS_KEY }}"
             export S3_SECRET_KEY="${{ secrets.PROD_S3_SECRET_KEY }}"
-            export S3_BUCKET_NAME="${{ vars.S3_BUCKET_NAME }}"
+            export S3_BUCKET_NAME="${{ secrets.PROD_S3_BUCKET_NAME }}"
+            export S3_CDN_URL="${{ secrets.PROD_S3_CDN_URL }}"
             export PROD_RESEND_API_KEY="${{ secrets.PROD_RESEND_API_KEY }}"
+            export ORIGIN="${{ secrets.PROD_ORIGIN }}"
 
             docker compose pull app
             docker compose up -d db redis minio varnish
@@ -65,8 +68,8 @@ jobs:
             echo "Rodando migrations..."
             docker run --rm \
               --network buero_buero-network \
-              --env DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}" \
-              ghcr.io/${{ vars.REPO }}/app:latest \
+              --env DATABASE_URL="$DATABASE_URL" \
+              ghcr.io/${{ github.repository }}/app:latest \
               bun prisma migrate deploy
 
             docker compose up -d app

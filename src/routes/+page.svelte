@@ -21,7 +21,9 @@
                                 playsinline
                                 crossorigin="anonymous"
                                 class="media-content"
-                            ></video>
+                            >
+                                <track kind="captions" />
+                            </video>
                         {:else if post.mediaType === "image"}
                             <img
                                 src={post.mediaUrl}
@@ -38,15 +40,32 @@
                             <span class="author">@{post.user.username}</span>
 
                             <div class="actions-group">
-                                {#if data.user && (data.user.id === post.userId || data.user.role === 'admin')}
-                                    <form method="POST" action="?/deletePost" use:enhance={() => {
-                                        if (!confirm('Tem certeza que quer apagar esse meme?')) return;
-                                        return async ({ update }) => {
-                                            await update();
-                                        };
-                                    }}>
-                                        <input type="hidden" name="postId" value={post.id} />
-                                        <button type="submit" class="delete-btn" title="Apagar Post">
+                                {#if data.user && (data.user.id === post.userId || data.user.role === "admin")}
+                                    <form
+                                        method="POST"
+                                        action="?/deletePost"
+                                        use:enhance={() => {
+                                            if (
+                                                !confirm(
+                                                    "Tem certeza que quer apagar esse meme?",
+                                                )
+                                            )
+                                                return;
+                                            return async ({ update }) => {
+                                                await update();
+                                            };
+                                        }}
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="postId"
+                                            value={post.id}
+                                        />
+                                        <button
+                                            type="submit"
+                                            class="delete-btn"
+                                            title="Apagar Post"
+                                        >
                                             <Trash2 size={22} />
                                         </button>
                                     </form>

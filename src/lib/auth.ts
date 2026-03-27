@@ -49,20 +49,25 @@ export const auth = betterAuth({
     sveltekitCookies(getRequestEvent),
     username(),
     rateLimit({
-      window: 60, // 1 minuto
-      max: 30, // Máximo 30 requests globais/min por IP
-      customRules: {
-        "/sign-in": {
-          window: 60,
-          max: 5, // Apenas 5 tentativas de login por minuto
+      strategy: "sliding-window",
+      limits: {
+        global: {
+          window: 60, // 1 minuto
+          max: 30, // Máximo 30 requests globais/min por IP
         },
-        "/sign-up": {
-          window: 3600, // 1 hora
-          max: 10, // Apenas 10 cadastros por hora por IP
-        },
-        "/verify-email": {
-          window: 3600,
-          max: 5, // Apenas 5 reenvios de e-mail por hora
+        endpoints: {
+          "/sign-in": {
+            window: 60,
+            max: 5, // Apenas 5 tentativas de login por minuto
+          },
+          "/sign-up": {
+            window: 3600, // 1 hora
+            max: 10, // Apenas 10 cadastros por hora por IP
+          },
+          "/verify-email": {
+            window: 3600,
+            max: 5, // Apenas 5 reenvios de e-mail por hora
+          },
         },
       },
     }),

@@ -1,17 +1,21 @@
 import pino from "pino";
-import { dev } from "$app/environment";
 
-// Configuração base do logger
+// Usar process.env para evitar dependência do runtime do SvelteKit em testes/CLI
+const isDev =
+  process.env.NODE_ENV !== "production" || process.env.VITEST === "true";
+
 export const baseLogger = pino({
-    level: dev ? "debug" : "info",
-    transport: dev ? {
+  level: isDev ? "debug" : "info",
+  transport: isDev
+    ? {
         target: "pino-pretty",
         options: {
-            colorize: true,
-            ignore: "pid,hostname",
-            translateTime: "HH:MM:ss Z",
-        }
-    } : undefined, // Em prod, usa JSON puro para performance e ingestão facilitada
+          colorize: true,
+          ignore: "pid,hostname",
+          translateTime: "HH:MM:ss Z",
+        },
+      }
+    : undefined, // Em prod/docker, gera JSON puro para o Loki/Promtail capturar
 });
 
 export type Logger = typeof baseLogger;

@@ -1,7 +1,9 @@
 services:
+  # --- INFRA BASE ---
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    profiles: ["dev", "prod"]
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -19,7 +21,13 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    profiles: ["dev", "prod"]
     command: redis-server --requirepass ${REDIS_PASSWD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - redis_data:/data
     networks:
@@ -28,80 +36,164 @@ services:
   minio:
     image: minio/minio
     restart: unless-stopped
+    profiles: ["dev", "prod"]
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
     networks:
       - buero-network
 
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    profiles: ["dev"]
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - buero-network
+
+  # --- APP ---
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    profiles: ["dev"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWD=${REDIS_PASSWD}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_BASE_URL=${BETTER_AUTH_BASE_URL}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - S3_CDN_URL=${S3_CDN_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - ORIGIN=${ORIGIN}
+      - BODY_SIZE_LIMIT=10M
+    logging:
+      driver: "json-file"
+    networks:
+      - buero-network
+
   varnish:
     image: varnish:7.4-alpine
     restart: unless-stopped
+    profiles: ["dev", "prod"]
     volumes:
       - ./config/varnish/default.vcl:/etc/varnish/default.vcl
     tmpfs:
       - /var/lib/varnish:exec
     depends_on:
-      - minio
-    networks:
-      - buero-network
-
-  mailpit:
-    image: axllent/mailpit
-    restart: unless-stopped
-    ports:
-      - "8025:8025" # Interface Web
-      - "1025:1025" # Servidor SMTP
-    networks:
-      - buero-network
-
-  app:
-    image: ghcr.io/${GITHUB_REPOSITORY}/app:latest
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      minio:
-        condition: service_started
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-      - REDIS_URL=redis://redis:6379
-      - REDIS_PASSWD=${REDIS_PASSWD}
-      - BETTER_AUTH_SECRET=${PROD_BETTER_AUTH_SECRET}
-      - BETTER_AUTH_BASE_URL=${PROD_BETTER_AUTH_BASE_URL}
-      - S3_ENDPOINT=http://minio:9000
-      - S3_REGION=us-east-1
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
-      - S3_CDN_URL=https://media.buero.fun
-      - RESEND_API_KEY=${PROD_RESEND_API_KEY}
-      - ORIGIN=https://buero.fun
-      - NODE_ENV=production
-      - BODY_SIZE_LIMIT=10M
+      minio: { condition: service_healthy }
     networks:
       - buero-network
 
   caddy:
-    image: ghcr.io/${GITHUB_REPOSITORY}/caddy:latest
+    image: caddy:2.7-alpine
     restart: unless-stopped
+    profiles: ["dev", "prod"]
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
+      - "9000:9000"
     volumes:
       - ./config/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
-      - caddy_cache:/var/cache/caddy/media
-      - /var/log/caddy:/var/log/caddy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:2019/config/",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
     depends_on:
-      - app
-      - minio
+      minio: { condition: service_healthy }
+      varnish: { condition: service_started }
+    networks:
+      - buero-network
+
+  # --- OBSERVABILITY (Loki 3.0, Grafana 10.x) ---
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    profiles: ["dev", "prod"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - buero-network
+
+  loki:
+    image: grafana/loki:latest
+    restart: unless-stopped
+    profiles: ["dev", "prod"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/loki.yaml:/etc/loki/local-config.yaml
+      - loki_data:/tmp/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - buero-network
+
+  promtail:
+    image: grafana/promtail:latest
+    restart: unless-stopped
+    profiles: ["dev", "prod"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./config/promtail.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - buero-network
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    profiles: ["dev", "prod"]
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - loki
+      - prometheus
     networks:
       - buero-network
 
@@ -115,4 +207,6 @@ volumes:
   minio_data:
   caddy_data:
   caddy_config:
-  caddy_cache:
+  prometheus_data:
+  loki_data:
+  grafana_data:
